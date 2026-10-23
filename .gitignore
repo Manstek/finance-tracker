@@ -1,0 +1,16 @@
+.*.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Окружение
+.env
+
+# IDE / ОС
+.idea/
+.vscode/
+.DS_Store
