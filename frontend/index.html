@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Трекер финансов</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="#/operations">Трекер финансов</a>
+    <nav id="nav" hidden>
+      <a href="#/operations" data-path="/operations">Операции</a>
+      <a href="#/categories" data-path="/categories">Категории</a>
+      <a href="#/statistics" data-path="/statistics">Статистика</a>
+      <a href="#/admin" data-path="/admin" id="nav-admin" hidden>Администрирование</a>
+      <a href="#" id="logout">Выйти</a>
+    </nav>
+  </header>
+  <main id="app" class="container"></main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
