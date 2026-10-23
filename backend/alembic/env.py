@@ -13,10 +13,10 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
-# Модели импортируются для автогенерации миграций (появятся в задаче #4)
-# from app.models import base  # noqa: F401
-# target_metadata = base.Base.metadata
-target_metadata = None
+# Модели импортируются для автогенерации миграций
+from app.models import base  # noqa: F401
+
+target_metadata = base.Base.metadata
 
 
 def run_migrations_offline() -> None:
