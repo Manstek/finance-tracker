@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Трекер финансов — макеты экранов</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<h1>Трекер финансов — макеты экранов (#6)</h1>
+<p class="note">Каркасные макеты: структура и элементы экранов, без финального оформления.</p>
+
+<section class="screen" id="login">
+  <h2>1. Вход — <code>#/login</code></h2>
+  <div class="frame center">
+    <div class="card">
+      <h3>Вход</h3>
+      <label>Имя пользователя<span class="input"></span></label>
+      <label>Пароль<span class="input">••••••••</span></label>
+      <div class="error">Неверное имя пользователя или пароль</div>
+      <span class="btn primary wide">Войти</span>
+      <p class="small">Нет аккаунта? <u>Зарегистрироваться</u></p>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="register">
+  <h2>2. Регистрация — <code>#/register</code></h2>
+  <div class="frame center">
+    <div class="card">
+      <h3>Регистрация</h3>
+      <label>Имя пользователя<span class="input"></span></label>
+      <label>Email (необязательно)<span class="input"></span><small>для восстановления доступа</small></label>
+      <label>Пароль<span class="input"></span><small>не короче 8 символов</small></label>
+      <label>Повтор пароля<span class="input"></span></label>
+      <span class="btn primary wide">Создать аккаунт</span>
+      <p class="small">Уже есть аккаунт? <u>Войти</u></p>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="operations">
+  <h2>3. Операции — <code>#/operations</code></h2>
+  <div class="frame">
+    <div class="topbar"><b>Трекер финансов</b><nav><u class="active">Операции</u><u>Категории</u><u>Статистика</u><u class="admin">Администрирование</u></nav><span>ivan · <u>Выйти</u></span></div>
+    <div class="row">
+      <div class="filters">
+        <label>С<span class="input sm">01.11.2026</span></label>
+        <label>По<span class="input sm">30.11.2026</span></label>
+        <label>Тип<span class="input sm">Все ▾</span></label>
+        <label>Категория<span class="input sm">Все ▾</span></label>
+        <span class="btn">Применить</span><u class="small">Сбросить</u>
+      </div>
+      <span class="btn primary">+ Операция</span>
+    </div>
+    <div class="totals">
+      <div>Доходы<b class="inc">+45 000,00 ₽</b></div>
+      <div>Расходы<b class="exp">−12 300,50 ₽</b></div>
+      <div>Баланс<b>32 699,50 ₽</b></div>
+    </div>
+    <table>
+      <tr><th>Дата</th><th>Тип</th><th>Категория</th><th>Комментарий</th><th class="r">Сумма</th><th></th></tr>
+      <tr><td>02.11.2026</td><td>Расход</td><td>Продукты</td><td>продукты</td><td class="r exp">−1 500,00</td><td>✎ 🗑</td></tr>
+      <tr><td>01.11.2026</td><td>Доход</td><td>Зарплата</td><td></td><td class="r inc">+45 000,00</td><td>✎ 🗑</td></tr>
+      <tr><td>01.11.2026</td><td>Расход</td><td class="muted">Без категории</td><td>такси</td><td class="r exp">−450,00</td><td>✎ 🗑</td></tr>
+    </table>
+    <div class="pager">‹ 1 2 › · 12 операций</div>
+  </div>
+</section>
+
+<section class="screen" id="form">
+  <h2>4. Добавление / редактирование операции (модальное окно)</h2>
+  <div class="frame center dim">
+    <div class="card">
+      <h3>Новая операция</h3>
+      <div class="seg"><span class="on">Расход</span><span>Доход</span></div>
+      <label>Сумма, ₽<span class="input">1500</span></label>
+      <label>Категория<span class="input">Продукты ▾</span></label>
+      <label>Дата<span class="input">02.11.2026</span><small>не позже сегодняшней</small></label>
+      <label>Комментарий<span class="input"></span></label>
+      <div class="row end"><span class="btn">Отмена</span><span class="btn primary">Сохранить</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="categories">
+  <h2>5. Категории — <code>#/categories</code></h2>
+  <div class="frame">
+    <div class="row"><span class="input">Новая категория</span><span class="btn primary">Добавить</span></div>
+    <ul class="list">
+      <li>Продукты <span>✎ Переименовать · 🗑 Удалить</span></li>
+      <li>Транспорт <span>✎ Переименовать · 🗑 Удалить</span></li>
+      <li>Зарплата <span>✎ Переименовать · 🗑 Удалить</span></li>
+    </ul>
+    <p class="small">При удалении категории операции сохраняются и попадают в «Без категории».</p>
+  </div>
+</section>
+
+<section class="screen" id="statistics">
+  <h2>6. Статистика — <code>#/statistics</code></h2>
+  <div class="frame">
+    <div class="filters"><label>Период<span class="input sm">Ноябрь 2026 ▾</span></label><div class="seg"><span class="on">Расходы</span><span>Доходы</span></div></div>
+    <div class="row start">
+      <div class="pie"></div>
+      <ul class="legend">
+        <li><i class="c1"></i>Продукты — 8 200,00 ₽ (66,7%)</li>
+        <li><i class="c2"></i>Без категории — 4 100,50 ₽ (33,3%)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="admin">
+  <h2>7. Администрирование — <code>#/admin</code> (только is_admin)</h2>
+  <div class="frame">
+    <table>
+      <tr><th>ID</th><th>Пользователь</th><th>Email</th><th>Роль</th><th>Создан</th><th></th></tr>
+      <tr><td>1</td><td>admin</td><td>admin@example.com</td><td>Администратор</td><td>19.10.2026</td><td></td></tr>
+      <tr><td>2</td><td>ivan</td><td>ivan@example.com</td><td>Пользователь</td><td>20.10.2026</td><td><u>Сбросить пароль</u> · <u>Удалить</u></td></tr>
+    </table>
+  </div>
+</section>
+</body>
+</html>
