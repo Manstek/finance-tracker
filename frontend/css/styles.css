@@ -1,0 +1,34 @@
+:root {
+  --bg: #f6f7f9; --surface: #fff; --text: #1f2328; --muted: #656d76; --border: #d0d7de;
+  --primary: #2a78d6; --income: #1a7f37; --expense: #cf222e; --radius: 6px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); }
+a { color: var(--primary); text-decoration: none; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.logo { font-weight: 600; color: var(--text); }
+.topbar nav { display: flex; gap: 16px; flex-wrap: wrap; }
+.topbar nav a.active { font-weight: 600; color: var(--text); }
+
+.container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+.page { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.page h1 { margin-top: 0; font-size: 22px; }
+.muted { color: var(--muted); }
+.todo { border-left: 3px solid var(--primary); padding-left: 10px; color: var(--muted); }
+
+/* Общие элементы форм и таблиц для экранов этапа 2 */
+.form { display: grid; gap: 12px; max-width: 360px; }
+.form label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+input, select, textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; }
+.btn { font: inherit; padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: #f6f8fa; cursor: pointer; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.field-error { color: var(--expense); font-size: 12px; }
+.alert { padding: 8px 12px; border-radius: var(--radius); background: #ffebe9; color: var(--expense); }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.income { color: var(--income); } .expense { color: var(--expense); }
+
+@media (max-width: 640px) {
+  .topbar { flex-direction: column; align-items: flex-start; padding: 12px 16px; }
+}
