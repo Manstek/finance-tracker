@@ -1,5 +1,7 @@
 """Pydantic-схемы пользователя (FR-1, FR-13)."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -26,3 +28,15 @@ class UserOut(BaseModel):
     username: str
     email: str | None = None
     is_admin: bool
+
+
+class AdminUserOut(UserOut):
+    """Профиль пользователя для администратора (FR-13) — с датой создания."""
+
+    created_at: datetime
+
+
+class ResetPasswordRequest(BaseModel):
+    """Тело запроса сброса пароля администратором (UC-11)."""
+
+    new_password: str = Field(min_length=8, max_length=128, examples=["87654321"])

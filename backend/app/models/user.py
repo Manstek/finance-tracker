@@ -23,5 +23,10 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    categories: Mapped[list["Category"]] = relationship(back_populates="user")  # noqa: F821
-    transactions: Mapped[list["Transaction"]] = relationship(back_populates="user")  # noqa: F821
+    # Удаление пользователя каскадно удаляет его данные на уровне БД (FR-13)
+    categories: Mapped[list["Category"]] = relationship(  # noqa: F821
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
+    transactions: Mapped[list["Transaction"]] = relationship(  # noqa: F821
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
