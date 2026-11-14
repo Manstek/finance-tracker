@@ -66,6 +66,7 @@ export async function login(username, password) {
 }
 
 export function logout() { auth.clear(); } // токены stateless (api.md, UC-3)
+export const getCurrentUser = () => request("GET", "/auth/me");
 
 // --- Операции (FR-4…FR-8) ---
 export const listOperations = (filters = {}) => request("GET", "/operations", { params: filters });

@@ -19,7 +19,7 @@ from app.core.db import get_db
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.models.user import User
-from app.schemas.transaction import OperationList, TransactionCreate, TransactionOut, Totals
+from app.schemas.transaction import OperationList, TransactionCreate, TransactionOut, TransactionUpdate, Totals
 
 router = APIRouter(prefix="/operations", tags=["Operations"])
 
@@ -44,6 +44,21 @@ def get_own_operation(
     return operation
 
 
+def validate_operation_fields(
+    db: Session, user_id: int, operation_date: date | None, category_id: int | None
+) -> None:
+    if operation_date is not None and operation_date > date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Дата не может быть в будущем"
+        )
+    if category_id is not None:
+        category = db.get(Category, category_id)
+        if category is None or category.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Категория не найдена"
+            )
+
+
 @router.post(
     "",
     response_model=TransactionOut,
@@ -56,18 +71,7 @@ def create_operation(
     db: Session = Depends(get_db),
 ) -> Transaction:
     """Добавить операцию; категория должна принадлежать пользователю."""
-    if payload.date > date.today():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Дата не может быть в будущем",
-        )
-    if payload.category_id is not None:
-        category = db.get(Category, payload.category_id)
-        if category is None or category.user_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Категория не найдена",
-            )
+    validate_operation_fields(db, user.id, payload.date, payload.category_id)
 
     operation = Transaction(
         user_id=user.id,
@@ -180,6 +184,21 @@ def summary_operations(
         expense=f"{expense.quantize(Decimal('0.01'))}",
         balance=f"{(income - expense).quantize(Decimal('0.01'))}",
     )
+
+
+@router.patch("/{operation_id}", response_model=TransactionOut, summary="Редактировать операцию (FR-8)")
+def update_operation(
+    operation_id: int,
+    payload: TransactionUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Transaction:
+    operation = get_own_operation(operation_id, user, db)
+    validate_operation_fields(db, user.id, payload.date, payload.category_id)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(operation, field, value)
+    db.commit()
+    return operation
 
 
 @router.delete(

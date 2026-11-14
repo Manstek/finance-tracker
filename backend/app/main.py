@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.admin import router as admin_router
 from app.api.auth import router as auth_router
+from app.api.categories import router as categories_router
 from app.api.operations import router as operations_router
 from app.core.config import get_settings
 
@@ -26,6 +27,7 @@ app.add_middleware(
 
 api_prefix = "/api/v1"
 app.include_router(auth_router, prefix=api_prefix)
+app.include_router(categories_router, prefix=api_prefix)
 app.include_router(operations_router, prefix=api_prefix)
 app.include_router(admin_router, prefix=api_prefix)
 

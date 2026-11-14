@@ -1,5 +1,7 @@
-// Точка входа: маршруты, защита страниц, шапка. Экраны — заглушки, наполняются в задачах этапа 2.
-import { auth, setUnauthorizedHandler, logout } from "./api.js";
+import { auth, getCurrentUser, setUnauthorizedHandler, logout } from "./api.js";
+import { adminPage } from "./admin-page.js";
+import { authPage } from "./auth-page.js";
+import { operationsPage } from "./operations-page.js";
 import { route, setGuard, navigate, start } from "./router.js";
 
 const PUBLIC = new Set(["/login", "/register"]);
@@ -23,20 +25,34 @@ function page(title, issue, text) {
   };
 }
 
-route("/login", page("Вход", 17, "Имя пользователя и пароль → POST /auth/login."));
-route("/register", page("Регистрация", 17, "Имя пользователя, email (необязательно), пароль ≥ 8 символов → POST /auth/register."));
-route("/operations", page("Операции", 18, "Список за текущий месяц, фильтры, итоги — GET /operations."));
+route("/login", authPage);
+route("/register", (root) => authPage(root, true));
+route("/operations", operationsPage);
 route("/categories", page("Категории", 40, "Справочник категорий — /categories."));
 route("/statistics", page("Статистика", 39, "Круговая диаграмма — GET /statistics/categories."));
-route("/admin", page("Администрирование", 21, "Пользователи — GET /admin/users (только is_admin)."));
+route("/admin", adminPage);
 route("/404", (root) => { root.innerHTML = `<section class="page"><h1>Страница не найдена</h1><a href="#/operations">К операциям</a></section>`; });
 
 // Шапка: меню видно только после входа
-function renderHeader() {
+let headerRequest = 0;
+let accountToken;
+let account;
+
+async function renderHeader() {
+  const request = ++headerRequest;
   const nav = document.getElementById("nav");
-  nav.hidden = !auth.isLoggedIn();
+  const admin = document.getElementById("nav-admin");
+  const token = auth.getToken();
+  nav.hidden = !token;
   const path = location.hash.replace(/^#/, "");
   nav.querySelectorAll("a[data-path]").forEach((a) => a.classList.toggle("active", a.dataset.path === path));
+  if (token !== accountToken) {
+    accountToken = token;
+    account = token ? getCurrentUser().catch(() => null) : null;
+    admin.hidden = true;
+  }
+  const user = await account;
+  if (request === headerRequest && token === auth.getToken()) admin.hidden = !user?.is_admin;
 }
 
 document.addEventListener("route:changed", renderHeader);
