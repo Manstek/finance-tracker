@@ -14,6 +14,8 @@ from app.core.config import get_settings
 # bcrypt — стандарт для хранения паролей (ЛР 1, NFR-1)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+BCRYPT_PASSWORD_MAX_BYTES = 72
+
 
 def hash_password(password: str) -> str:
     """Хешировать пароль для хранения в БД."""
