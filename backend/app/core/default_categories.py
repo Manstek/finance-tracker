@@ -21,11 +21,10 @@ DEFAULT_CATEGORIES = [
 
 
 def seed_default_categories(db: Session, user_id: int) -> None:
-    """Создать стандартный набор категорий для пользователя."""
+    """Добавить стандартный набор категорий в транзакции вызывающего кода."""
     existing = set(
         db.scalars(select(Category.name).where(Category.user_id == user_id))
     )
     for name in DEFAULT_CATEGORIES:
         if name not in existing:
             db.add(Category(user_id=user_id, name=name))
-    db.commit()
