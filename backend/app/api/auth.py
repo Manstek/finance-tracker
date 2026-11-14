@@ -5,10 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.default_categories import seed_default_categories
-from app.core.security import hash_password
+from app.core.security import create_access_token, hash_password, verify_password
+from app.api.deps import get_current_user
 from app.models.user import User
+from app.schemas.auth import LoginRequest, Token
 from app.schemas.user import UserCreate, UserOut
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -57,3 +60,34 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
 
     seed_default_categories(db, user.id)
     return user
+
+
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Вход, выдача JWT (FR-2)",
+)
+def login(payload: LoginRequest, db: Session = Depends(get_db)) -> Token:
+    """Проверить учётные данные и выдать access-токен."""
+    user = db.scalar(select(User).where(User.username == payload.username))
+    # Одинаковый ответ для «нет такого» и «неверный пароль» — не раскрываем данные
+    if user is None or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверное имя пользователя или пароль",
+        )
+    settings = get_settings()
+    return Token(
+        access_token=create_access_token(user.id),
+        expires_in=settings.access_token_expire_minutes * 60,
+    )
+
+
+@router.get(
+    "/me",
+    response_model=UserOut,
+    summary="Текущий пользователь (доработка по ревью PR #54)",
+)
+def me(current_user: User = Depends(get_current_user)) -> User:
+    """Данные пользователя из токена — фронтенд определяет по ним роль."""
+    return current_user
