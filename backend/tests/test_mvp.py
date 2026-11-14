@@ -3,6 +3,7 @@ import subprocess
 import sys
 from datetime import date, timedelta
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -55,6 +56,35 @@ def test_edit_and_filters():
         assert client.get(endpoint, headers=other).json()["total"] == 0
         assert client.patch(item, headers=owner, json={"category_id": None}).json()["category_id"] is None
         assert client.delete(item, headers=owner).status_code == 204
+
+
+@pytest.mark.parametrize("endpoint", ["/api/v1/operations", "/api/v1/operations/summary"])
+def test_operation_period_validation(endpoint):
+    with TestClient(app) as client:
+        _, headers = account(client, "period_validation")
+        today = date.today()
+        earlier = today - timedelta(days=1)
+        reversed_period = {"date_from": today.isoformat(), "date_to": earlier.isoformat()}
+        response = client.get(endpoint, headers=headers, params=reversed_period)
+        assert response.status_code == 400
+        assert response.json()["detail"] == (
+            "Начало периода (date_from) должно быть не позже окончания (date_to)"
+        )
+
+        for field in ("date_from", "date_to"):
+            response = client.get(endpoint, headers=headers, params={field: "2026-02-30"})
+            assert response.status_code == 422
+            error = response.json()["detail"][0]
+            assert error["loc"] == ["query", field]
+            assert "ГГГГ-ММ-ДД" in error["msg"]
+
+        for period in (
+            {},
+            {"date_from": today.isoformat()},
+            {"date_to": today.isoformat()},
+            {"date_from": today.isoformat(), "date_to": today.isoformat()},
+        ):
+            assert client.get(endpoint, headers=headers, params=period).status_code == 200
 
 
 def test_admin_deletion():

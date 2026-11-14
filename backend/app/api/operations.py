@@ -8,9 +8,10 @@ import calendar
 from datetime import date
 from decimal import Decimal
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import ValidationError, ValidatorFunctionWrapHandler, WrapValidator
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
@@ -24,8 +25,28 @@ from app.schemas.transaction import OperationList, TransactionCreate, Transactio
 router = APIRouter(prefix="/operations", tags=["Operations"])
 
 
-def default_period() -> tuple[date, date]:
-    """Текущий месяц, когда фильтры дат не заданы (api.md, FR-5)."""
+def parse_period_date(value: object, handler: ValidatorFunctionWrapHandler) -> date:
+    try:
+        return handler(value)
+    except ValidationError:
+        raise ValueError("Укажите существующую дату в формате ГГГГ-ММ-ДД") from None
+
+
+PeriodDate = Annotated[date, WrapValidator(parse_period_date)]
+
+
+def operation_period(
+    date_from: PeriodDate | None = None, date_to: PeriodDate | None = None
+) -> tuple[date | None, date | None]:
+    """Проверить границы периода. Без обеих границ взять текущий месяц."""
+    if date_from is not None and date_to is not None and date_from > date_to:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Начало периода (date_from) должно быть не позже окончания (date_to)",
+        )
+    if date_from is not None or date_to is not None:
+        return date_from, date_to
+
     today = date.today()
     month_end = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
     return today.replace(day=1), month_end
@@ -93,8 +114,7 @@ def create_operation(
     summary="Список операций с фильтрами и итогами (FR-5..FR-7)",
 )
 def list_operations(
-    date_from: date | None = None,
-    date_to: date | None = None,
+    period: Annotated[tuple[date | None, date | None], Depends(operation_period)],
     type: Literal["income", "expense"] | None = None,  # noqa: A002 — имя из контракта
     category_id: int | None = None,
     page: int = Query(default=1, ge=1),
@@ -106,8 +126,7 @@ def list_operations(
 
     totals считаются по всем операциям фильтра, а не только по странице.
     """
-    if date_from is None and date_to is None:
-        date_from, date_to = default_period()
+    date_from, date_to = period
 
     filters = [Transaction.user_id == user.id]
     if date_from is not None:
@@ -156,14 +175,12 @@ def list_operations(
     summary="Итоги за период: доходы, расходы, баланс (FR-7)",
 )
 def summary_operations(
-    date_from: date | None = None,
-    date_to: date | None = None,
+    period: Annotated[tuple[date | None, date | None], Depends(operation_period)],
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Totals:
     """Суммы доходов и расходов за период; без фильтров — текущий месяц."""
-    if date_from is None and date_to is None:
-        date_from, date_to = default_period()
+    date_from, date_to = period
 
     filters = [Transaction.user_id == user.id]
     if date_from is not None:
