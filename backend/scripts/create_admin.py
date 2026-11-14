@@ -8,11 +8,13 @@
 
 import argparse
 import getpass
-import sys
+
+from pydantic import ValidationError
 
 from app.core.db import SessionLocal
 from app.core.security import hash_password
 from app.models.user import User
+from app.schemas.user import ResetPasswordRequest
 
 
 def main() -> None:
@@ -21,16 +23,22 @@ def main() -> None:
     parser.add_argument("-p", "--password", help="пароль (иначе запрашивается интерактивно)")
     args = parser.parse_args()
 
-    password = args.password or getpass.getpass("Пароль (минимум 8 символов): ")
-    if len(password) < 8:
-        print("Ошибка: пароль должен быть не короче 8 символов")
-        raise SystemExit(1)
-
     username = args.username.strip()
 
     with SessionLocal() as db:
         user = db.query(User).filter(User.username == username).first()
         if user is None:
+            password = args.password
+            if password is None:
+                password = getpass.getpass("Пароль (от 8 символов, до 72 байт в UTF-8): ")
+            try:
+                ResetPasswordRequest(new_password=password)
+            except ValidationError:
+                print(
+                    "Ошибка: пароль должен содержать от 8 символов, занимать не более "
+                    "72 байт в UTF-8 и не содержать нулевой символ"
+                )
+                raise SystemExit(1) from None
             user = User(username=username, password_hash=hash_password(password), is_admin=True)
             db.add(user)
             action = "создан"
