@@ -24,6 +24,11 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
     """Проверить, что пароль соответствует сохранённому хешу."""
+    if (
+        len(plain_password.encode("utf-8")) > BCRYPT_PASSWORD_MAX_BYTES
+        or "\0" in plain_password
+    ):
+        return False
     return pwd_context.verify(plain_password, password_hash)
 
 

@@ -28,37 +28,36 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
     username = payload.username.strip()
     email = payload.email.strip() if payload.email else None
 
-    exists = db.scalar(select(User).where(User.username == username))
-    if exists:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Пользователь с таким именем уже существует",
-        )
-    if email:
-        email_taken = db.scalar(select(User).where(User.email == email))
-        if email_taken:
+    with db.begin():
+        exists = db.scalar(select(User).where(User.username == username))
+        if exists:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Пользователь с таким email уже существует",
+                detail="Пользователь с таким именем уже существует",
             )
+        if email:
+            email_taken = db.scalar(select(User).where(User.email == email))
+            if email_taken:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Пользователь с таким email уже существует",
+                )
 
-    user = User(
-        username=username,
-        email=email,
-        password_hash=hash_password(payload.password),
-    )
-    db.add(user)
-    try:
-        db.commit()
-    except IntegrityError:  # гонка двух одинаковых регистраций
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Пользователь с таким именем уже существует",
-        ) from None
-    db.refresh(user)
+        user = User(
+            username=username,
+            email=email,
+            password_hash=hash_password(payload.password),
+        )
+        db.add(user)
+        try:
+            db.flush()
+        except IntegrityError:  # гонка двух одинаковых регистраций
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Имя пользователя или email уже заняты",
+            ) from None
+        seed_default_categories(db, user.id)
 
-    seed_default_categories(db, user.id)
     return user
 
 

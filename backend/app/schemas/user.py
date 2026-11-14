@@ -18,8 +18,22 @@ class UserCreate(BaseModel):
         examples=["ivan"],
         description="Латиница, цифры, _ и -",
     )
-    password: str = Field(min_length=8, max_length=128, examples=["12345678"])
+    password: str = Field(
+        min_length=8,
+        max_length=BCRYPT_PASSWORD_MAX_BYTES,
+        description="Не более 72 байт в UTF-8",
+        examples=["12345678"],
+    )
     email: str | None = Field(default=None, max_length=255)
+
+    @field_validator("password")
+    @classmethod
+    def validate_bcrypt_password(cls, password: str) -> str:
+        if len(password.encode("utf-8")) > BCRYPT_PASSWORD_MAX_BYTES:
+            raise ValueError("Пароль должен занимать не более 72 байт в UTF-8")
+        if "\0" in password:
+            raise ValueError("Пароль не должен содержать нулевой символ")
+        return password
 
 
 class UserOut(BaseModel):
