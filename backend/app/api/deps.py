@@ -8,8 +8,8 @@ from app.core.db import get_db
 from app.core.security import decode_access_token
 from app.models.user import User
 
-# Swagger UI умеет выполнять login по этой ссылке (/docs → Authorize)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+# Swagger UI отправляет учётные данные формой (/docs → Authorize).
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 credentials_error = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,

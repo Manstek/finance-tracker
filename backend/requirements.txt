@@ -8,5 +8,6 @@ pyjwt==2.10.*
 passlib[bcrypt]==1.7.*
 bcrypt==4.0.*
 python-dotenv==1.0.*
+python-multipart==0.0.*
 pytest==8.3.*
 httpx==0.28.*

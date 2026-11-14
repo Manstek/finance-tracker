@@ -1,6 +1,6 @@
 """Эндпоинты аутентификации (FR-1, FR-2)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Form, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -81,6 +81,16 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> Token:
         access_token=create_access_token(user.id),
         expires_in=settings.access_token_expire_minutes * 60,
     )
+
+
+@router.post("/token", response_model=Token, summary="Получить JWT из формы Swagger")
+def login_from_form(
+    username: str = Form(min_length=1, max_length=50),
+    password: str = Form(min_length=1, max_length=128),
+    db: Session = Depends(get_db),
+) -> Token:
+    """Принять данные формы OAuth2 и применить те же правила входа."""
+    return login(LoginRequest(username=username, password=password), db)
 
 
 @router.get(
