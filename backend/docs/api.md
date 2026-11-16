@@ -35,6 +35,11 @@
 ```
 - неверные учётные данные → `401`.
 
+### POST /auth/token — вход через Swagger UI
+Кнопка Authorize отправляет `username` и `password` как поля формы
+`application/x-www-form-urlencoded`. Формат ответа и проверка учётных данных
+совпадают с JSON-эндпоинтом `/auth/login`.
+
 ### POST /auth/logout — выход (UC-3)
 Клиент удаляет токен; токены stateless, серверный blacklist не входит в MVP.
 
