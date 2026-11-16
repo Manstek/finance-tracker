@@ -146,6 +146,42 @@ def list_operations(
     )
 
 
+@router.get(
+    "/summary",
+    response_model=Totals,
+    summary="Итоги за период: доходы, расходы, баланс (FR-7)",
+)
+def summary_operations(
+    date_from: date | None = None,
+    date_to: date | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Totals:
+    """Суммы доходов и расходов за период; без фильтров — текущий месяц."""
+    if date_from is None and date_to is None:
+        date_from, date_to = default_period()
+
+    filters = [Transaction.user_id == user.id]
+    if date_from is not None:
+        filters.append(Transaction.date >= date_from)
+    if date_to is not None:
+        filters.append(Transaction.date <= date_to)
+
+    income, expense = db.execute(
+        select(
+            func.coalesce(func.sum(case((Transaction.type == "income", Transaction.amount))), 0),
+            func.coalesce(func.sum(case((Transaction.type == "expense", Transaction.amount))), 0),
+        ).where(*filters)
+    ).one()
+    income, expense = Decimal(income), Decimal(expense)
+
+    return Totals(
+        income=f"{income.quantize(Decimal('0.01'))}",
+        expense=f"{expense.quantize(Decimal('0.01'))}",
+        balance=f"{(income - expense).quantize(Decimal('0.01'))}",
+    )
+
+
 @router.delete(
     "/{operation_id}",
     status_code=status.HTTP_204_NO_CONTENT,
