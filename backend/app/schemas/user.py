@@ -1,5 +1,6 @@
 """Pydantic-схемы пользователя (FR-1, FR-13)."""
 
+import re
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -25,6 +26,26 @@ class UserCreate(BaseModel):
         examples=["12345678"],
     )
     email: str | None = Field(default=None, max_length=255)
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def normalize_username(cls, username: str) -> str:
+        # mode="before": обрезаем пробелы до проверки паттерна
+        return username.strip() if isinstance(username, str) else username
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, email: str | None) -> str | None:
+        """Email опционален; если задан — проверяем формат (FR-12)."""
+        if email is None:
+            return None
+        email = email.strip().lower()
+        if not email:
+            return None
+        # Простая проверка без внешних зависимостей: local@domain.tld
+        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]{2,}", email):
+            raise ValueError("Укажите email в формате имя@домен.зона")
+        return email
 
     @field_validator("password")
     @classmethod

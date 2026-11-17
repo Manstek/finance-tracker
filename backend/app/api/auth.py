@@ -25,9 +25,8 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 )
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
     """Создать пользователя и выдать ему базовый набор категорий."""
-    username = payload.username.strip()
-    email = payload.email.strip() if payload.email else None
-
+    # username/email нормализованы в схеме (strip, email в нижний регистр)
+    username, email = payload.username, payload.email
     with db.begin():
         exists = db.scalar(select(User).where(User.username == username))
         if exists:

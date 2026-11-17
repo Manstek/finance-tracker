@@ -4,7 +4,15 @@ from datetime import date as date_type
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
+
+
+def normalize_comment(value: str | None) -> str | None:
+    """Пробелы по краям обрезаются; пустой комментарий — отсутствие комментария."""
+    if value is None:
+        return None
+    value = value.strip()
+    return value or None
 
 
 class TransactionCreate(BaseModel):
@@ -15,6 +23,11 @@ class TransactionCreate(BaseModel):
     category_id: int | None = None
     date: date_type = Field(examples=["2026-11-02"])
     comment: str | None = Field(default=None, max_length=500)
+
+    @field_validator("comment")
+    @classmethod
+    def clean_comment(cls, value: str | None) -> str | None:
+        return normalize_comment(value)
 
 
 class TransactionOut(BaseModel):
@@ -42,6 +55,11 @@ class TransactionUpdate(BaseModel):
     category_id: int | None = None
     date: date_type | None = None
     comment: str | None = Field(default=None, max_length=500)
+
+    @field_validator("comment")
+    @classmethod
+    def clean_comment(cls, value: str | None) -> str | None:
+        return normalize_comment(value)
 
     @model_validator(mode="after")
     def require_non_nullable_values(self):
