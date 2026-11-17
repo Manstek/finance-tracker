@@ -71,12 +71,13 @@ def test_operation_period_validation(endpoint):
             "Начало периода (date_from) должно быть не позже окончания (date_to)"
         )
 
-        for field in ("date_from", "date_to"):
+        for field, label in (("date_from", "Начало периода"), ("date_to", "Окончание периода")):
             response = client.get(endpoint, headers=headers, params={field: "2026-02-30"})
             assert response.status_code == 422
-            error = response.json()["detail"][0]
-            assert error["loc"] == ["query", field]
-            assert "ГГГГ-ММ-ДД" in error["msg"]
+            detail = response.json()["detail"]
+            assert isinstance(detail, str)  # единый формат {"detail": строка} (FR-12)
+            assert label in detail
+            assert "ГГГГ-ММ-ДД" in detail
 
         for period in (
             {},

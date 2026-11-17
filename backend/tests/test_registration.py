@@ -1,7 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
 
 from app.api import auth
 from app.core.db import SessionLocal
@@ -54,8 +52,10 @@ def test_registration_rolls_back_after_category_failure(monkeypatch):
         initial_count = db.scalar(select(func.count()).select_from(Category))
         with monkeypatch.context() as patch:
             patch.setattr(auth, "seed_default_categories", seed_with_duplicate)
-            with TestClient(app) as client, pytest.raises(IntegrityError):
-                client.post("/api/v1/auth/register", json=payload)
+            with TestClient(app) as client:
+                # Нарушение ограничений БД не должно отдавать 500 (FR-12)
+                response = client.post("/api/v1/auth/register", json=payload)
+                assert response.status_code == 409, response.text
         assert db.scalar(select(User.id).where(User.username == payload["username"])) is None
         assert db.scalar(select(func.count()).select_from(Category)) == initial_count
     with TestClient(app) as client:

@@ -8,10 +8,14 @@ from app.api.auth import router as auth_router
 from app.api.categories import router as categories_router
 from app.api.operations import router as operations_router
 from app.core.config import get_settings
+from app.core.errors import register_error_handlers
 
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name, version="0.1.0")
+
+# Единый формат ошибок {"detail": "понятное сообщение"} (FR-12)
+register_error_handlers(app)
 
 # Фронтенд (задача #7) работает с localhost:5500 и ходит в API напрямую из браузера
 app.add_middleware(
