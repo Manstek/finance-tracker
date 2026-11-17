@@ -36,6 +36,19 @@ app.include_router(operations_router, prefix=api_prefix)
 app.include_router(admin_router, prefix=api_prefix)
 
 
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Базовые защитные заголовки ответов API (NFR-2, задача #27).
+
+    API отдаёт только JSON; nosniff запрещает браузеру «догадываться» о типе
+    содержимого, DENY — встраивание страниц API в iframe.
+    """
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    return response
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     """Проверка живости сервиса."""
