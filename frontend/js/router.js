@@ -18,8 +18,8 @@ async function resolve() {
   const render = routes.get(path) || routes.get("/404");
   const root = document.getElementById("app");
   root.innerHTML = "";
-  await render(root);
   document.dispatchEvent(new CustomEvent("route:changed", { detail: path }));
+  await render(root);
 }
 
 export function start() {

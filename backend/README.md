@@ -25,6 +25,12 @@ uvicorn app.main:app --reload
 
 ## Тесты
 
+Создайте отдельную пустую PostgreSQL БД. Примените к ней миграции, указав
+её URL в `DATABASE_URL`, затем задайте тот же URL в
+`FINANCE_TEST_DATABASE_URL` и запустите тесты. После каждого теста таблицы
+пользователей, операций и категорий в тестовой БД очищаются.
+
 ```bash
-pytest
+python -m alembic upgrade head
+python -m pytest
 ```

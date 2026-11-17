@@ -3,7 +3,7 @@ const money = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximum
 
 export function formatMoney(value, type) {
   const n = Number(value);
-  const sign = type === "income" ? "+" : type === "expense" ? "−" : "";
+  const sign = type === "income" ? "+" : type === "expense" || n < 0 ? "−" : "";
   return `${sign}${money.format(Math.abs(n))} ₽`;
 }
 
